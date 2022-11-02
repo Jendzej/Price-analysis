@@ -14,7 +14,6 @@ def clearPrice(priceElement: array):
         price = price.text.strip()
         priceClear = re.findall("[0-9]|,", price.strip())
         prices.append(float("".join(priceClear).replace(",",".")))
-        print("".join(priceClear).replace(",","."))
     return [priceElement, prices] # That kinda makes sense but why though? What's the point of keeping the dirty version of the price?
 
 
@@ -32,7 +31,6 @@ def main():
     # - https://
     # - anything after the last slash
     # We can always add ^ and $ to the regex to make it more strict, and then notify the user on how the URL should look (but they are idiots though?)
-    print(search)
     if search == None:
         print("Wrong URL")
         return
