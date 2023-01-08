@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from analyze import get_price, get_rating
+from analyze import analyze
 
 driver = webdriver.Chrome()
 
@@ -85,17 +85,6 @@ def assign_values(response):
     return assigned
 
 
-def analyze(json_data):
-    """Analyze data search results."""
-    average_price = round(sum(list(map(get_price, json_data))) / len(list(map(get_price, json_data))), 2)
-    rating = [x for x in list(map(get_rating, json_data)) if x is not None]
-    opinions = sum(x[1] for x in rating)
-    average_rating = round(sum(x[0] * x[1] for x in rating) / opinions, 2)
-    print("AVERAGE PRICE:", average_price)
-    print("AVERAGE RATINGS:", average_rating)
-    print("OPINIONS:", opinions)
-
-
 def find_data(item_name):
     driver.get(f"https://www.google.com/search?q={item_name.replace(' ', '+')}")
     button = driver.find_element(By.XPATH, '//*[@id="W0wltc"]')
@@ -103,8 +92,7 @@ def find_data(item_name):
     WebDriverWait(driver, timeout=2).until(EC.presence_of_element_located((By.CLASS_NAME, 'fG8Fp')))
     data = driver.find_elements(By.CLASS_NAME, 'fG8Fp')
     json_data = assign_values(data)
-    print(json_data)
-    analyze(json_data)
+    print(analyze(json_data))
 
 
 if __name__ == "__main__":
