@@ -3,6 +3,7 @@ from typing import Union
 import uvicorn
 from fastapi import FastAPI
 
+from app.analyze import analyze
 from app.main import find_data
 
 app = FastAPI()
@@ -10,7 +11,11 @@ app = FastAPI()
 
 @app.get('/')
 async def get_item(q: Union[str, None] = 'iphone 14 pro max'):
-    return find_data(q)
+    data = find_data(q)
+    return {
+        'data': data,
+        'analysis': analyze(data)
+    }
 
 
 if __name__ == "__main__":
