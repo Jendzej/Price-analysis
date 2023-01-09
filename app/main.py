@@ -96,12 +96,8 @@ def find_data(item_name):
     get all elements to analyze (by classname)"""
     driver = webdriver.Chrome(chrome_options=options)
     driver.get(f"https://www.google.com/search?q={item_name.replace(' ', '+')}")
-    try:
-        button = driver.find_element(By.XPATH, '//*[@id="W0wltc"]')
-        button.click()
-        print("CLICK")
-    except:
-        print("PASS")
+    button = driver.find_element(By.XPATH, '//*[@id="W0wltc"]')
+    button.click()
     WebDriverWait(driver, timeout=2).until(EC.presence_of_element_located((By.CLASS_NAME, 'fG8Fp')))
     data = driver.find_elements(By.CLASS_NAME, 'fG8Fp')
     json_data = assign_values(data)
