@@ -1,3 +1,4 @@
+"""Data analysis using web scraping (not very effective)"""
 import re
 
 import requests
@@ -6,9 +7,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from analyze import analyze
-
-driver = webdriver.Chrome()
+options = webdriver.ChromeOptions()
+options.add_experimental_option('prefs', {'intl.accept_languages': 'pl,pl_PL'})
+options.add_argument('--disable-blink-features=AutomationControlled')
+options.add_argument("--headless")
 
 
 def price_to_float(price: str):
@@ -17,6 +19,7 @@ def price_to_float(price: str):
 
 
 def currency_converter(currency_code: str, price: float):
+    """Convert currencies to PLN by actual exchange rates (NBP API)."""
     if currency_code == 'PLN':
         return price
     pln = requests.get(f'https://api.nbp.pl/api/exchangerates/rates/c/{currency_code}/?format=json')
@@ -24,15 +27,17 @@ def currency_converter(currency_code: str, price: float):
 
 
 def assign_price(price, item: dict):
+    """Assign price to item dict"""
     if len(price) > 0:
         currency = 'PLN'
         if 'USD' in price[0]:
             currency = 'USD'
         elif '€' in price[0]:
             currency = 'EUR'
+
         if len(price) >= 2:
-            item[
-                'price'] = f'od {currency_converter(currency, price_to_float(price[0]))} do {currency_converter(currency, price_to_float(price[1]))}'
+            item['price'] = f'od {currency_converter(currency, price_to_float(price[0]))} ' \
+                            f'do {currency_converter(currency, price_to_float(price[1]))}'
         else:
             item['price'] = currency_converter(currency, price_to_float(price[0]))
 
@@ -57,6 +62,7 @@ def opinions_to_int(opinions: str):
 
 
 def assign_values(response):
+    """Assign response data (web elements) into objects. Returns list of objects."""
     assigned = []
     for element in response:
         if re.match('[0-9]*,?[0-9]*', element.text):
@@ -86,17 +92,18 @@ def assign_values(response):
 
 
 def find_data(item_name):
+    """Search item name in google search, decline all cookies and privacy policy,
+    get all elements to analyze (by classname)"""
+    driver = webdriver.Chrome(chrome_options=options)
     driver.get(f"https://www.google.com/search?q={item_name.replace(' ', '+')}")
-    button = driver.find_element(By.XPATH, '//*[@id="W0wltc"]')
-    button.click()
+    try:
+        button = driver.find_element(By.XPATH, '//*[@id="W0wltc"]')
+        button.click()
+        print("CLICK")
+    except:
+        print("PASS")
     WebDriverWait(driver, timeout=2).until(EC.presence_of_element_located((By.CLASS_NAME, 'fG8Fp')))
     data = driver.find_elements(By.CLASS_NAME, 'fG8Fp')
     json_data = assign_values(data)
-    print(analyze(json_data))
-
-
-if __name__ == "__main__":
-    try:
-        find_data('Soundcore life q30')
-    except KeyboardInterrupt:
-        driver.close()
+    driver.quit()
+    return json_data
